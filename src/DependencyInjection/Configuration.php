@@ -20,7 +20,7 @@ final class Configuration implements ConfigurationInterface
         'scheme', 'dotpay', 'ideal', 'alipay', 'applepay', 'blik', 'amazonpay', 'sepadirectdebit',
     ];
     public const CAPTURE_METHODS = ['auto', 'delayed_manual'];
-    public const DEFAULT_CAPTURE_METHOD = 'manual';
+    public const DEFAULT_CAPTURE_METHOD = 'delayed_manual';
 
     public function getConfigTreeBuilder(): TreeBuilder
     {
