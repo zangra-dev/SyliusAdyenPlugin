@@ -12,6 +12,7 @@ namespace BitBag\SyliusAdyenPlugin\Client;
 
 use BitBag\SyliusAdyenPlugin\Entity\AdyenTokenInterface;
 use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
+use BitBag\SyliusAdyenPlugin\Resolver\Currency\PaymentCurrencyResolver;
 use BitBag\SyliusAdyenPlugin\Resolver\Version\VersionResolverInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -60,15 +61,18 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         'wechatpaySDK',
         'wechatpayQR',
     ];
+    private PaymentCurrencyResolver $currencyResolver;
 
     public function __construct(
         VersionResolverInterface $versionResolver,
         NormalizerInterface $normalizer,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        PaymentCurrencyResolver $currencyResolver,
     ) {
         $this->versionResolver = $versionResolver;
         $this->normalizer = $normalizer;
         $this->requestStack = $requestStack;
+        $this->currencyResolver = $currencyResolver;
     }
 
     public function createForAvailablePaymentMethods(
@@ -84,7 +88,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = [
             'amount' => [
                 'value' => $order->getTotal(),
-                'currency' => (string) $order->getCurrencyCode(),
+                'currency' => $this->currencyResolver->resolve((string) $order->getCurrencyCode()),
             ],
             'merchantAccount' => $options['merchantAccount'],
             'countryCode' => $countryCode,
@@ -127,7 +131,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = [
             'amount' => [
                 'value' => $order->getTotal(),
-                'currency' => $order->getCurrencyCode(),
+                'currency' => $this->currencyResolver->resolve($order->getCurrencyCode()),
             ],
             'reference' => (string) $order->getNumber(),
             'merchantAccount' => $options['merchantAccount'],
@@ -165,7 +169,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'merchantAccount' => $options['merchantAccount'],
             'modificationAmount' => [
                 'value' => $payment->getAmount(),
-                'currency' => (string) $payment->getCurrencyCode(),
+                'currency' => $this->currencyResolver->resolve((string) $payment->getCurrencyCode()),
             ],
             'originalReference' => $payment->getDetails()['pspReference'],
         ];
@@ -217,7 +221,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'merchantAccount' => $options['merchantAccount'],
             'modificationAmount' => [
                 'value' => $refund->amount(),
-                'currency' => $refund->currencyCode(),
+                'currency' => $this->currencyResolver->resolve($refund->currencyCode()),
             ],
             'reference' => (string) $order->getNumber(),
             'originalReference' => $payment->getDetails()['pspReference'],

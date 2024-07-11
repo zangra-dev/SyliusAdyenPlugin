@@ -82,5 +82,13 @@
                 id="bitbag.sylius_adyen_plugin.resolver.address.street_address_resolver"
         />
 
+        <service
+                class="BitBag\SyliusAdyenPlugin\Resolver\Currency\PaymentCurrencyResolver"
+                id="bit_bag.sylius_adyen_plugin.resolver.currency.payment_currency_resolver"
+        >
+            <argument type="service" id="sylius.context.channel" />
+            <argument>%bitbag.sylius_adyen_plugin.currency%</argument>
+        </service>
+
     </services>
 </container>

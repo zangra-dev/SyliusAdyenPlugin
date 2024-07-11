@@ -23,6 +23,7 @@
             <argument type="service" id="bitbag.sylius_adyen_plugin.resolver.version.version_resolver"/>
             <argument type="service" id="serializer"/>
             <argument type="service" id="request_stack"/>
+            <argument>bit_bag.sylius_adyen_plugin.resolver.currency.payment_currency_resolver</argument>
         </service>
 
         <service
