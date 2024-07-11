@@ -121,12 +121,16 @@ The plug-in provides a configuration that can be overrided:
 bitbag_sylius_adyen:
   logger: ~
   supported_types: ~
+  currency: ~
+  capture_method: delayed_manual
 ```
 
-| property | type | description
-| --- | --- | --- |
-| logger | null\|string | specifies a logger service name which handles dumping of all traffic between your Sylius instance and Adyen API; useful for debugging. Empty value = disable logging |
-| supported_types | null\|array | whitelist of visible payment methods; null = all tested payment methods, array = list of payment types, empty array = don't filter at all and show everything returned by Adyen |
+| property | type | description |                                                                                                                                                                                                                                                                                                                                                       
+| --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| logger | null\|string | specifies a logger service name which handles dumping of all traffic between your Sylius instance and Adyen API; useful for debugging. Empty value = disable logging                                                                                                                                                                                              |
+| supported_types | null\|array | whitelist of visible payment methods; null = all tested payment methods, array = list of payment types, empty array = don't filter at all and show everything returned by Adyen                                                                                                                                                                                   |
+| currency | null\|string | Force the payment in the given currency. By default this setting is null which allow payments in any currency set in the channel                                                                                                                                                                                                                                  |
+| capture_method | string | Adyens default setup is to auto capture a payment directly after a successful 'authorisation'. https://docs.adyen.com/online-payments/capture/. `delayed_manual`: Sylius by default require the admin to complete the order payment with an Adyen 'capture' request. `auto`: reflex the default behavior in Adyen and set the payment state directly to 'complete' |
 
 ## Security
 ----
