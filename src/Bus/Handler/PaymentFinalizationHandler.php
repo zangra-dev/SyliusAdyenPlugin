@@ -11,7 +11,9 @@ declare(strict_types=1);
 namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
 
 use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentFinalizationCommand;
+use BitBag\SyliusAdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use BitBag\SyliusAdyenPlugin\Traits\OrderFromPaymentTrait;
+use Psr\Log\LoggerInterface;
 use SM\Factory\FactoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -28,18 +30,30 @@ final class PaymentFinalizationHandler implements MessageHandlerInterface
 
     /** @var RepositoryInterface */
     private $orderRepository;
+    private string $captureMethod;
+    private LoggerInterface $adyenLogger;
 
     public function __construct(
         FactoryInterface $stateMachineFactory,
-        RepositoryInterface $orderRepository
+        RepositoryInterface $orderRepository,
+        string $captureMethod,
+        LoggerInterface $adyenLogger
     ) {
         $this->stateMachineFactory = $stateMachineFactory;
         $this->orderRepository = $orderRepository;
+        $this->captureMethod = $captureMethod;
+        $this->adyenLogger = $adyenLogger;
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $transition): void
     {
         $stateMachine = $this->stateMachineFactory->get($payment, PaymentTransitions::GRAPH);
+        $this->adyenLogger->info('Z log, '.__METHOD__.' transition: '.$transition);
+        if (PaymentTransitions::TRANSITION_AUTHORIZE === $transition && $this->captureMethod === PaymentCommandFactoryInterface::CAPTURE_METHOD_AUTO) {
+            $this->adyenLogger->info('Z log, switching to complete transtition');
+            $transition = PaymentTransitions::TRANSITION_COMPLETE;
+        }
+
         $stateMachine->apply($transition, true);
     }
 
