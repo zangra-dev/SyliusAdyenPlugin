@@ -24,13 +24,18 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
 {
     use OrderFromPaymentTrait;
 
+    const CAPTURE_METHOD_AUTO = 'auto';
+
     /** @var DispatcherInterface */
     private $dispatcher;
+    private string $captureMethod;
 
     public function __construct(
-        DispatcherInterface $dispatcher
+        DispatcherInterface $dispatcher,
+        string $captureMethod
     ) {
         $this->dispatcher = $dispatcher;
+        $this->captureMethod = $captureMethod;
     }
 
     public static function getSubscribedEvents(): array
@@ -85,7 +90,9 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
 
     public function doFilter(TransitionEvent $event): void
     {
-        if (!$this->isProcessableAdyenPayment($event)) {
+        if (
+            !$this->isProcessableAdyenPayment($event)
+            || $this->captureMethod === self::CAPTURE_METHOD_AUTO) {
             return;
         }
 
