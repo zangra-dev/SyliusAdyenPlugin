@@ -13,6 +13,7 @@ namespace BitBag\SyliusAdyenPlugin\Logging\Monolog;
 
 use BitBag\SyliusAdyenPlugin\Factory\LogFactoryInterface;
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\LogRecord;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -40,7 +41,7 @@ final class DoctrineHandler extends AbstractProcessingHandler
         parent::__construct();
     }
 
-    protected function write(array $record): void
+    protected function write(array|LogRecord $record): void
     {
         $log = $this->logFactory->create($record['message'], $record['level'], 0, $this->addSessionToken());
 
@@ -52,10 +53,10 @@ final class DoctrineHandler extends AbstractProcessingHandler
         try {
             $session = $this->requestStack->getSession();
         } catch (SessionNotFoundException $e) {
-            $session = '';
+            return '';
         }
         if (!$session->isStarted()) {
-            $session = '';
+            return '';
         }
 
         $sessionId = substr($session->getId(), 0, 8) ?: '????????';

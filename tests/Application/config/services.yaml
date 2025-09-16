@@ -7,3 +7,7 @@ parameters:
         - adyen
 
 services: ~
+
+bitbag_sylius_adyen:
+  supported_types: ~
+  capture_method: auto

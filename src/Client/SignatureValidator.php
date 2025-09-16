@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace BitBag\SyliusAdyenPlugin\Client;
 
-use Adyen\Service\NotificationReceiver;
+use Adyen\Service\WebhookReceiver;
 use Adyen\Util\HmacSignature;
 
 final class SignatureValidator implements SignatureValidatorInterface
@@ -24,9 +24,9 @@ final class SignatureValidator implements SignatureValidatorInterface
         $this->key = $key;
     }
 
-    private function getReceiver(): NotificationReceiver
+    private function getReceiver(): WebhookReceiver
     {
-        return new NotificationReceiver(
+        return new WebhookReceiver(
             new HmacSignature(),
         );
     }

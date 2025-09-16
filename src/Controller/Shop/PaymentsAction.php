@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace BitBag\SyliusAdyenPlugin\Controller\Shop;
 
+use Adyen\AdyenException;
 use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentStatusReceived;
 use BitBag\SyliusAdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use BitBag\SyliusAdyenPlugin\Bus\Command\TakeOverPayment;
@@ -107,26 +108,35 @@ class PaymentsAction
         $customerIdentifier = $this->dispatcher->dispatch(new GetToken($paymentMethod, $order));
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
-        $result = $client->submitPayment(
-            $url,
-            $request->request->all(),
-            $order,
-            $customerIdentifier,
-        );
 
-        $payment->setDetails($result);
-        $this->dispatcher->dispatch(new PaymentStatusReceived($payment));
+        try {
+            $result = $client->submitPayment(
+                $url,
+                $request->request->all(),
+                $order,
+                $customerIdentifier,
+            );
 
-        return new JsonResponse(
-            $payment->getDetails()
-            +
-            [
-                'redirect' => $this->paymentResponseProcessor->process(
-                    (string) $paymentMethod->getCode(),
-                    $request,
-                    $payment,
-                ),
-            ],
-        );
+            $payment->setDetails($result);
+            $this->dispatcher->dispatch(new PaymentStatusReceived($payment));
+
+            return new JsonResponse(
+                $payment->getDetails()
+                +
+                [
+                    'redirect' => $this->paymentResponseProcessor->process(
+                        (string) $paymentMethod->getCode(),
+                        $request,
+                        $payment,
+                    ),
+                ],
+            );
+        } catch (AdyenException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+                'code' => $exception->getCode(),
+            ], $exception->getCode());
+        }
     }
 }
